@@ -1,0 +1,3 @@
+BinaryRepresentor/BinaryRepresentor/obj
+BinaryRepresentor/BinaryRepresentor/bin
+BinaryRepresentor/.vs

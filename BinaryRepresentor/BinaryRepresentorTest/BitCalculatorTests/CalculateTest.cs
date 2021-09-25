@@ -1,7 +1,6 @@
 using BinaryRepresentor;
 using Xunit;
 
-
 namespace BinaryRepresentorTests
 {
     public class CalculateTest

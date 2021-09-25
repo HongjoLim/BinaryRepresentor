@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace BinaryRepresentor
 {
-    public class BinaryRepresentor
+    public class BitCalculator
     {
         public const string IllegalOperation = "Illegal Operation";
 

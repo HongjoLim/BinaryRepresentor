@@ -1,3 +1,5 @@
 BinaryRepresentor/BinaryRepresentor/obj
 BinaryRepresentor/BinaryRepresentor/bin
+BinaryRepresentor/BinaryRepresentorTest/bin
+BinaryRepresentor/BinaryRepresentorTest/obj
 BinaryRepresentor/.vs

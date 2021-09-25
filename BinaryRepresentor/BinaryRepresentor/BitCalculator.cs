@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BinaryRepresentor
 {
-    public class BinaryRepresentor
+    public class BitCalculator
     {
         public const string IllegalOperation = "Illegal Operation";
 

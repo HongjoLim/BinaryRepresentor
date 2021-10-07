@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace BinaryRepresentor
 {
     public class BitCalculator
     {
         public const string IllegalOperation = "Illegal Operation";
+        public const string InvalidInputs = "Cannot compute the result. \nPlease check your bit offset and value size inputs.";
 
-        public static string Calculate(byte[] data, bool isLittleEndiann, ushort bitOffset, ushort valueSize, int preScalingOffset, int postScalingOffset, uint multiplier, uint divider)
+        public static string Calculate(byte[] data, bool isLittleEndian, ushort bitOffset, ushort valueSize, int preScalingOffset, int postScalingOffset, uint multiplier, uint divider)
         {
             if (divider == 0)
             {
@@ -16,19 +19,27 @@ namespace BinaryRepresentor
 
             int bitArrLength = data.Length * 8;
 
-            if (bitArrLength < bitOffset + valueSize)
+            if (isLittleEndian && bitArrLength < bitOffset + valueSize)
             {
-                return IllegalOperation;
+                return InvalidInputs;
             }
 
-            bool[] bits = GetBitsFromData(data, isLittleEndiann);
-            bool[] bitsToChange = GetBitsToChangeFromSourceBits(bits, isLittleEndiann, bitOffset, valueSize);
+            if (isLittleEndian == false && bitOffset + 8 < valueSize)
+            {
+                return InvalidInputs;
+            }
 
-            long result = 0;
-
-            result = ((result + preScalingOffset) * multiplier / divider) + postScalingOffset;
-
-            return result.ToString();
+            try
+            {
+                bool[] bitsToChange = GetBitsToChangeFromData(data, isLittleEndian, bitOffset, valueSize);
+                long value = BitArrayToLong(bitsToChange);
+                double result = ((value + preScalingOffset) * multiplier / divider) + postScalingOffset;
+                return result.ToString();
+            }
+            catch
+            {
+                return InvalidInputs;
+            }
         }
 
         public static bool[] GetBitsFromData(byte[] data, bool isLittleEndian)
@@ -45,26 +56,42 @@ namespace BinaryRepresentor
             return bits;
         }
 
-        public static bool[] GetBitsToChangeFromSourceBits(bool[] bits, bool isLittleEndian, ushort bitOffset, ushort valueSize)
+        public static bool[] GetBitsToChangeFromData(byte[] data, bool isLittleEndian, ushort bitOffset, ushort valueSize)
         {
-            bool[] bitsToChange = new bool[valueSize];
+            List<bool> bitsToChange = new List<bool>();
 
-            if (isLittleEndian == false)
+            for (int i = 0; i < data.Length; i++)
             {
-                for (int i = 0; i < bits.Length / 8; i++)
+                bool[] bits = ByteToBoolArray(data[i]);
+                Array.Reverse(bits);
+
+                int minIndex = i * 8; // 0, 8, 16, 24 ...
+                int maxIndex = (i + 1) * 8 - 1; // 7, 15, 23, 31 ...
+                int numOfBitsToHighlight = 0;
+                int numOfBitsToSkip = 0;
+
+                if (minIndex <= bitOffset && maxIndex >= bitOffset)
                 {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        bool temp;
-                        temp = bits[i * 8 + j];
-                        bits[i * 8 + j] = bits[(i + 1) * 8 - j - 1];
-                        bits[(i + 1) * 8 - j - 1] = temp;
-                    }
+                    numOfBitsToSkip = bitOffset % 8;
+                }
+
+                if (isLittleEndian)
+                {
+                    numOfBitsToHighlight = GetNumOfBitsToHighlightLittleEndian(minIndex: minIndex, maxIndex: maxIndex, valueSize: valueSize, bitOffset: bitOffset);
+                    bool[] bits2 = bits.Skip(numOfBitsToSkip).Take(numOfBitsToHighlight).ToArray();
+                    bitsToChange.AddRange(bits2);
+                }
+                else
+                {
+                    numOfBitsToHighlight = GetNumOfBitsToHighlightBigEndian(minIndex: minIndex, maxIndex: maxIndex, valueSize: valueSize, bitOffset: bitOffset);
+                    bool[] bits2 = bits.Skip(numOfBitsToSkip).Take(numOfBitsToHighlight).ToArray();
+                    bitsToChange.InsertRange(0, bits2);
                 }
             }
 
-            Array.Copy(bits, bitOffset, bitsToChange, 0, valueSize);
-            return bitsToChange;
+            bitsToChange.Reverse();
+
+            return bitsToChange.ToArray();
         }
 
         public static int GetNumOfBitsToHighlightBigEndian(int minIndex, int maxIndex, ushort valueSize, ushort bitOffset)
@@ -113,6 +140,35 @@ namespace BinaryRepresentor
             }
 
             return numOfBitsToHighlight;
+        }
+
+        public static long BitArrayToLong(bool[] boolArray)
+        {
+            long result = 0;
+
+            for (int i = 0; i < boolArray.Length; i++)
+            {
+                if (boolArray[i])
+                {
+                    result |= (long)(1 << (boolArray.Length - 1 - i));
+                }
+            }
+            return result;
+        }
+
+        public static bool[] ByteToBoolArray(byte b)
+        {
+            // prepare the return result
+            bool[] result = new bool[8];
+
+            // check each bit in the byte. if 1 set to true, if 0 set to false
+            for (int i = 0; i < 8; i++)
+                result[i] = (b & (1 << i)) == 0 ? false : true;
+
+            // reverse the array
+            Array.Reverse(result);
+
+            return result;
         }
     }
 }

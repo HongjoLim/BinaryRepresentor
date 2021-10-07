@@ -1,5 +1,6 @@
 BinaryRepresentor/BinaryRepresentor/obj
 BinaryRepresentor/BinaryRepresentor/bin
+BinaryRepresentor/BinaryRepresentor/BinaryRepresentor.csproj.user
 BinaryRepresentor/BinaryRepresentorTest/bin
 BinaryRepresentor/BinaryRepresentorTest/obj
 BinaryRepresentor/.vs

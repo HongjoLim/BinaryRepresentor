@@ -40,7 +40,7 @@ namespace BinaryRepresentorTests
 
             string result = BitCalculator.Calculate(data, isLittleEndiann, bitOffset, valueSize, preScalingOffset, postScalingOffset, multiplier, divider);
 
-            Assert.Equal("Illegal Operation", result);
+            Assert.Equal("Cannot compute the result. \nPlease check your bit offset and value size inputs.", result);
         }
 
 
